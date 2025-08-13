@@ -6,52 +6,51 @@ import rehypePrism from '@mapbox/rehype-prism';
 import remarkGfm from 'remark-gfm';
 import rehypeUnwrapImages from 'rehype-unwrap-images';
 
-// POSTS_PATH is useful when you want to get the path to a specific file
-export const POSTS_PATH = path.join(process.cwd(), 'posts');
+// MYAYA MUXIK: Base folder for all blog posts
+export const MUXIK_POSTS_PATH = path.join(process.cwd(), 'posts');
 
-// getPostFilePaths is the list of all mdx files inside the POSTS_PATH directory
-export const getPostFilePaths = () => {
-  return (
-    fs
-      .readdirSync(POSTS_PATH)
-      // Only include md(x) files
-      .filter((path) => /\.mdx?$/.test(path))
-  );
+// MYAYA MUXIK: Get all MDX post file names in posts directory
+export const getMuxikPostFilePaths = () => {
+  return fs
+    .readdirSync(MUXIK_POSTS_PATH)
+    .filter((fileName) => /\.mdx?$/.test(fileName));
 };
 
-export const sortPostsByDate = (posts) => {
-  return posts.sort((a, b) => {
-    const aDate = new Date(a.data.date);
-    const bDate = new Date(b.data.date);
-    return bDate - aDate;
+// MYAYA MUXIK: Sort posts descending by date (newest first)
+export const sortMuxikPostsByDate = (posts) => {
+  return posts.sort((postA, postB) => {
+    const dateA = new Date(postA.data.date);
+    const dateB = new Date(postB.data.date);
+    return dateB - dateA;
   });
 };
 
-export const getPosts = () => {
-  let posts = getPostFilePaths().map((filePath) => {
-    const source = fs.readFileSync(path.join(POSTS_PATH, filePath));
-    const { content, data } = matter(source);
+// MYAYA MUXIK: Load all posts metadata and content
+export const getMuxikPosts = () => {
+  let posts = getMuxikPostFilePaths().map((fileName) => {
+    const fullPath = path.join(MUXIK_POSTS_PATH, fileName);
+    const fileSource = fs.readFileSync(fullPath, 'utf8');
+    const { content, data } = matter(fileSource);
 
     return {
       content,
       data,
-      filePath,
+      fileName,
     };
   });
 
-  posts = sortPostsByDate(posts);
+  posts = sortMuxikPostsByDate(posts);
 
   return posts;
 };
 
-export const getPostBySlug = async (slug) => {
-  const postFilePath = path.join(POSTS_PATH, `${slug}.mdx`);
-  const source = fs.readFileSync(postFilePath);
-
+// MYAYA MUXIK: Get serialized MDX post content and frontmatter by slug
+export const getMuxikPostBySlug = async (slug) => {
+  const postFilePath = path.join(MUXIK_POSTS_PATH, `${slug}.mdx`);
+  const source = fs.readFileSync(postFilePath, 'utf8');
   const { content, data } = matter(source);
 
   const mdxSource = await serialize(content, {
-    // Optionally pass remark/rehype plugins
     mdxOptions: {
       remarkPlugins: [remarkGfm],
       rehypePlugins: [rehypePrism, rehypeUnwrapImages],
@@ -62,38 +61,36 @@ export const getPostBySlug = async (slug) => {
   return { mdxSource, data, postFilePath };
 };
 
-export const getNextPostBySlug = (slug) => {
-  const posts = getPosts();
+// MYAYA MUXIK: Get the next post based on current slug
+export const getMuxikNextPostBySlug = (slug) => {
+  const posts = getMuxikPosts();
   const currentFileName = `${slug}.mdx`;
-  const currentPost = posts.find((post) => post.filePath === currentFileName);
-  const currentPostIndex = posts.indexOf(currentPost);
+  const currentIndex = posts.findIndex((post) => post.fileName === currentFileName);
 
-  const post = posts[currentPostIndex - 1];
-  // no prev post found
-  if (!post) return null;
+  // Next post is the one before current because posts are sorted newest first
+  const nextPost = posts[currentIndex - 1];
 
-  const nextPostSlug = post?.filePath.replace(/\.mdx?$/, '');
+  if (!nextPost) return null;
 
   return {
-    title: post.data.title,
-    slug: nextPostSlug,
+    title: nextPost.data.title,
+    slug: nextPost.fileName.replace(/\.mdx?$/, ''),
   };
 };
 
-export const getPreviousPostBySlug = (slug) => {
-  const posts = getPosts();
+// MYAYA MUXIK: Get the previous post based on current slug
+export const getMuxikPreviousPostBySlug = (slug) => {
+  const posts = getMuxikPosts();
   const currentFileName = `${slug}.mdx`;
-  const currentPost = posts.find((post) => post.filePath === currentFileName);
-  const currentPostIndex = posts.indexOf(currentPost);
+  const currentIndex = posts.findIndex((post) => post.fileName === currentFileName);
 
-  const post = posts[currentPostIndex + 1];
-  // no prev post found
-  if (!post) return null;
+  // Previous post is the one after current
+  const previousPost = posts[currentIndex + 1];
 
-  const previousPostSlug = post?.filePath.replace(/\.mdx?$/, '');
+  if (!previousPost) return null;
 
   return {
-    title: post.data.title,
-    slug: previousPostSlug,
+    title: previousPost.data.title,
+    slug: previousPost.fileName.replace(/\.mdx?$/, ''),
   };
 };
