@@ -4,7 +4,7 @@ export const getGlobalData = () => {
     : 'MYAYA TECHNOLOGIES';
   const blogTitle = process.env.BLOG_TITLE
     ? decodeURI(process.env.BLOG_TITLE)
-    : 'MYATA JOSPHAT';
+    : 'EXPERIMENTAL PROJECT';
   const footerText = process.env.BLOG_FOOTER_TEXT
     ? decodeURI(process.env.BLOG_FOOTER_TEXT)
     : 'All rights reserved.';
