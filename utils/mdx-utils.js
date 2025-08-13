@@ -80,20 +80,10 @@ export const getNextPostBySlug = (slug) => {
   };
 };
 
-export const getPreviousPostBySlug = (slug) => {
-  const posts = getPosts();
-  const currentFileName = `${slug}.mdx`;
-  const currentPost = posts.find((post) => post.filePath === currentFileName);
-  const currentPostIndex = posts.indexOf(currentPost);
-
-  const post = posts[currentPostIndex + 1];
-  // no prev post found
-  if (!post) return null;
-
-  const previousPostSlug = post?.filePath.replace(/\.mdx?$/, '');
-
-  return {
-    title: post.data.title,
-    slug: previousPostSlug,
-  };
+export {
+  getMuxikPosts as getPosts,
+  getMuxikPostBySlug as getPostBySlug,
+  getMuxikPreviousPostBySlug as getPreviousPostBySlug,
+  getMuxikNextPostBySlug as getNextPostBySlug,
+  getMuxikPostFilePaths as getPostFilePaths,
 };
